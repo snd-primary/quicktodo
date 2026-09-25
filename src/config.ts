@@ -17,4 +17,4 @@ export function isClearDoneShortcut(e: KeyboardEvent): boolean {
 }
 
 /** 最下部に表示するヒント。 */
-export const HINT_TEXT = "Enter 追加  ↑↓ 移動  Space チェック  Esc 隠す  ⌘/Ctrl+⇧+⌫ 済みを削除";
+export const HINT_TEXT = "Enter 追加  ↑↓ 移動  Space チェック  → 済みを削除  Esc 隠す";

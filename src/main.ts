@@ -72,6 +72,16 @@ function toggleSelected(): void {
   void saveTodos(todos);
 }
 
+/** 選択中の項目がチェック済みなら削除する。未チェックなら何もしない。 */
+function deleteSelectedIfDone(): void {
+  const t = todos[selected];
+  if (!t || !t.done) return;
+  todos.splice(selected, 1);
+  if (selected >= todos.length) selected = todos.length - 1; // 空なら -1 になる
+  render();
+  void saveTodos(todos);
+}
+
 function clearDone(): void {
   if (!todos.some((t) => t.done)) return;
   todos = todos.filter((t) => !t.done);
@@ -143,6 +153,10 @@ input.addEventListener("keydown", (e) => {
     case " ":
       e.preventDefault();
       toggleSelected();
+      return;
+    case "ArrowRight":
+      e.preventDefault();
+      deleteSelectedIfDone();
       return;
     default:
       // 文字キーや Backspace など入力欄を編集するキーは入力欄モードに戻して既定動作に任せる
