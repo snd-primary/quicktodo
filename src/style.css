@@ -119,9 +119,29 @@ body.list-mode #input {
   overflow-wrap: anywhere;
 }
 
+/* インライン編集欄。行の見た目を崩さないよう文字サイズや余白は .text に合わせる */
+.edit {
+  padding: 0 4px;
+  margin: 0 -4px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--input-bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 .todo.done .text {
   text-decoration: line-through;
   color: var(--muted);
+}
+
+/* 済み項目でも編集中は通常の文字色で、取り消し線なしで表示する */
+.todo.done .edit {
+  text-decoration: none;
+  color: var(--fg);
 }
 
 #footer {
