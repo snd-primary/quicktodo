@@ -105,8 +105,26 @@ function focusInput(): void {
 
 // フォーカスは常に入力欄に置き、「リスト内の選択」は仮想的に扱う。
 // こうすると文字キーで即入力に戻れ、日本語 IME も自然に動く。
+// macOS の WKWebView (Safari 系) は IME の変換確定 Enter を
+// compositionend の「後」に isComposing=false / keyCode=229 で keydown 発火する。
+// そのため isComposing だけでは弾けず、keyCode 229 と直前の compositionend も見る。
+let composing = false;
+let composedAt = 0;
+let spaceToggledAt = 0;
+input.addEventListener("compositionstart", () => {
+  composing = true;
+});
+input.addEventListener("compositionend", () => {
+  composing = false;
+  composedAt = performance.now();
+});
+
+// IME が有効な間は Space や文字キーも keyCode=229 で届くので、
+// 229 の判定は Enter に限定する (Space でのチェック切替や文字入力を妨げないため)。
 input.addEventListener("keydown", (e) => {
-  if (e.isComposing) return;
+  if (e.isComposing || composing) return;
+  // 変換確定の Enter (keyCode 229 / compositionend 直後) は無視する
+  if (e.key === "Enter" && (e.keyCode === 229 || performance.now() - composedAt < 50)) return;
 
   if (e.key === "Escape") {
     e.preventDefault();
@@ -152,6 +170,9 @@ input.addEventListener("keydown", (e) => {
       return;
     case " ":
       e.preventDefault();
+      // IME 有効時に同じ Space の keydown が二重に届くことがあるので、直後の再発火は無視する
+      if (performance.now() - spaceToggledAt < 30) return;
+      spaceToggledAt = performance.now();
       toggleSelected();
       return;
     case "ArrowRight":
@@ -163,6 +184,24 @@ input.addEventListener("keydown", (e) => {
       if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key.length === 1 || e.key === "Backspace")) {
         setSelected(-1);
       }
+  }
+});
+
+// リストモードで IME 経由のスペース (全角含む) が入力欄に挿入されてしまった場合の保険。
+// keydown を preventDefault できなかったときは、挿入された 1 文字を取り除いてチェックを切り替える。
+input.addEventListener("input", (e) => {
+  const ev = e as InputEvent;
+  if (selected < 0 || ev.isComposing) return;
+  if (ev.data !== " " && ev.data !== "\u3000") return;
+  if (!ev.inputType.startsWith("insert") || ev.inputType === "insertFromPaste") return;
+  const pos = input.selectionStart ?? input.value.length;
+  input.value = input.value.slice(0, pos - 1) + input.value.slice(pos);
+  input.setSelectionRange(pos - 1, pos - 1);
+  // 通常は直前の keydown 側で切り替え済み。IME の確定は keydown から遅れて届くので窓は広めに取る。
+  // keydown が一切来なかった場合だけここで切り替える。
+  if (performance.now() - spaceToggledAt > 500) {
+    spaceToggledAt = performance.now();
+    toggleSelected();
   }
 });
 
