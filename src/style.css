@@ -124,12 +124,35 @@ body.list-mode #input {
   color: var(--muted);
 }
 
-#hint {
+#footer {
   flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 11px;
   color: var(--muted);
+}
+
+#hint {
+  flex: 1 1 auto;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: center;
+}
+
+#clear-done {
+  flex: none;
+  padding: 2px 8px;
+  font: inherit;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#clear-done:hover {
+  color: var(--fg);
+  border-color: var(--muted);
 }

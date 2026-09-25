@@ -18,7 +18,10 @@
         placeholder="今やること・考えていること"
       />
       <ul id="list" aria-label="todos"></ul>
-      <footer id="hint"></footer>
+      <footer id="footer">
+        <span id="hint"></span>
+        <button id="clear-done" type="button" tabindex="-1" hidden>済みを削除</button>
+      </footer>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

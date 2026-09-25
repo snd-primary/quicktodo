@@ -8,6 +8,7 @@ const win = getCurrentWindow();
 const input = document.getElementById("input") as HTMLInputElement;
 const list = document.getElementById("list") as HTMLUListElement;
 const hint = document.getElementById("hint") as HTMLElement;
+const clearDoneButton = document.getElementById("clear-done") as HTMLButtonElement;
 
 let todos: Todo[] = [];
 /** 選択中のインデックス。-1 は入力欄モード。 */
@@ -36,6 +37,9 @@ function render(): void {
     }),
   );
   document.body.classList.toggle("list-mode", selected >= 0);
+  const doneCount = todos.filter((t) => t.done).length;
+  clearDoneButton.hidden = doneCount === 0;
+  clearDoneButton.textContent = `済みを削除 (${doneCount})`;
   const sel = list.children[selected] as HTMLElement | undefined;
   sel?.scrollIntoView({ block: "nearest" });
 }
@@ -151,6 +155,10 @@ input.addEventListener("keydown", (e) => {
 // 何かの拍子にフォーカスが外れても入力欄へ戻す
 document.addEventListener("focusin", (e) => {
   if (e.target !== input) input.focus();
+});
+clearDoneButton.addEventListener("click", () => {
+  clearDone();
+  input.focus();
 });
 document.addEventListener("mousedown", (e) => {
   // クリックしても構わないが、フォーカスは入力欄に留める
