@@ -21,7 +21,15 @@
       <footer id="footer">
         <span id="hint"></span>
         <button id="clear-done" type="button" tabindex="-1" hidden>済みを削除</button>
+        <button id="help-button" type="button" tabindex="-1" aria-label="ヘルプ" title="ショートカット一覧">?</button>
       </footer>
+      <section id="help" role="dialog" aria-label="ショートカット一覧" hidden>
+        <div id="help-panel">
+          <h2>ショートカット</h2>
+          <div id="help-body"></div>
+          <p id="help-close-hint">Esc またはクリックで閉じる</p>
+        </div>
+      </section>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

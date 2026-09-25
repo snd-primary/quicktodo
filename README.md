@@ -22,7 +22,8 @@
 | `Esc` | 編集中 | 編集を取り消す |
 | 任意の文字キー | リスト | 入力欄に戻ってその文字を入力 |
 | `Cmd/Ctrl+Shift+Backspace` | どこでも | チェック済み項目をすべて削除 (確認なし)。最下部の「済みを削除 (N)」ボタンのクリックでも同じ |
-| `Esc` | どこでも (編集中を除く) | ウィンドウを隠す |
+| `Cmd/Ctrl+/` | どこでも | ショートカット一覧 (ヘルプ) を開閉。最下部の「?」ボタンのクリックでも同じ。表示中は `Esc` か背景クリックで閉じ、他のキーは閉じてそのまま通常操作になる |
+| `Esc` | どこでも (編集中・ヘルプ表示中を除く) | ウィンドウを隠す |
 | `Cmd+W` / `×` / `Alt+F4` | ウィンドウ | 終了せず隠す |
 
 アプリの終了はトレイメニューの「終了」からのみ行う。
@@ -99,6 +100,7 @@ Rust 1.98.1 / Tauri 2.11 / macOS 26 (Apple Silicon) でのビルド。Windows �
 | ログイン時自動起動を初回に有効化 | `src-tauri/src/lib.rs` | `ENABLE_AUTOSTART` (`true`) |
 | 保存ファイル名 | `src-tauri/src/lib.rs` と `src/config.ts` | `STORE_FILE` (`"todos.json"`、両方を揃える) |
 | チェック済み一括削除のキー判定 | `src/config.ts` | `isClearDoneShortcut()` |
+| ヘルプ開閉のキー判定・ヘルプの内容 | `src/config.ts` | `isHelpShortcut()`, `HELP_SECTIONS` |
 | 最下部のヒント文 | `src/config.ts` | `HINT_TEXT` |
 | ウィンドウサイズ・常に手前・装飾なし | `src-tauri/tauri.conf.json` | `app.windows[0]` (420×480) |
 | トレイメニュー項目 | `src-tauri/src/lib.rs` | `build_tray()` |

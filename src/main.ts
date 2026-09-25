@@ -1,6 +1,6 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { emit, listen } from "@tauri-apps/api/event";
-import { HINT_TEXT, isClearDoneShortcut } from "./config";
+import { HELP_SECTIONS, HINT_TEXT, isClearDoneShortcut, isHelpShortcut } from "./config";
 import { loadTodos, saveTodos, type Todo } from "./store";
 
 const win = getCurrentWindow();
@@ -9,6 +9,9 @@ const input = document.getElementById("input") as HTMLInputElement;
 const list = document.getElementById("list") as HTMLUListElement;
 const hint = document.getElementById("hint") as HTMLElement;
 const clearDoneButton = document.getElementById("clear-done") as HTMLButtonElement;
+const helpButton = document.getElementById("help-button") as HTMLButtonElement;
+const help = document.getElementById("help") as HTMLElement;
+const helpBody = document.getElementById("help-body") as HTMLElement;
 
 let todos: Todo[] = [];
 /** 選択中のインデックス。-1 は入力欄モード。 */
@@ -146,6 +149,51 @@ function clearDone(): void {
   void saveTodos(todos);
 }
 
+// ---- help ----------------------------------------------------------------
+
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || /Mac OS/.test(navigator.userAgent);
+
+/** ⌘⇧⌫ 表記を macOS 以外向けに Ctrl+Shift+Backspace 形式へ直す。 */
+function displayKey(k: string): string {
+  if (isMac) return k;
+  return k
+    .replace("⌘", "Ctrl+")
+    .replace("⇧", "Shift+")
+    .replace("⌫", "Backspace");
+}
+
+function renderHelp(): void {
+  helpBody.replaceChildren(
+    ...HELP_SECTIONS.flatMap(({ title, rows }) => {
+      const h = document.createElement("h3");
+      h.textContent = title;
+      const table = document.createElement("table");
+      for (const [keys, action] of rows) {
+        const tr = table.insertRow();
+        const kc = tr.insertCell();
+        kc.className = "keys";
+        for (const k of keys.split(" ")) {
+          const kbd = document.createElement("kbd");
+          kbd.textContent = displayKey(k);
+          kc.append(kbd, " ");
+        }
+        tr.insertCell().textContent = action;
+      }
+      return [h, table];
+    }),
+  );
+}
+
+function isHelpOpen(): boolean {
+  return !help.hidden;
+}
+
+function setHelpOpen(open: boolean): void {
+  help.hidden = !open;
+  document.body.classList.toggle("help-open", open);
+  helpButton.setAttribute("aria-expanded", String(open));
+}
+
 function hideWindow(): void {
   void win.hide();
 }
@@ -190,6 +238,20 @@ const shouldIgnoreForIme = imeGuard(input);
 
 input.addEventListener("keydown", (e) => {
   if (shouldIgnoreForIme(e)) return;
+
+  if (isHelpShortcut(e)) {
+    e.preventDefault();
+    setHelpOpen(!isHelpOpen());
+    return;
+  }
+  if (isHelpOpen()) {
+    // ヘルプ表示中は Esc で閉じるだけ。それ以外のキーはヘルプを閉じて通常どおり処理する
+    setHelpOpen(false);
+    if (e.key === "Escape") {
+      e.preventDefault();
+      return;
+    }
+  }
 
   if (e.key === "Escape") {
     e.preventDefault();
@@ -301,7 +363,20 @@ clearDoneButton.addEventListener("click", () => {
   clearDone();
   input.focus();
 });
+helpButton.addEventListener("click", () => {
+  setHelpOpen(!isHelpOpen());
+  input.focus();
+});
+// パネルの外側 (背景) をクリックしたら閉じる。パネル内のクリックは何もしない
+help.addEventListener("click", (e) => {
+  if (e.target === help) setHelpOpen(false);
+});
 document.addEventListener("mousedown", (e) => {
+  // ヘルプ表示中はリストが隠れているので項目のトグルはしない
+  if (isHelpOpen()) {
+    e.preventDefault();
+    return;
+  }
   // 編集欄内のクリックはキャレット移動などの既定動作に任せる
   if ((e.target as HTMLElement).classList?.contains("edit")) return;
   // 編集中に他をクリックしたら、選択を動かす前に編集を確定する
@@ -321,12 +396,16 @@ document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 async function main(): Promise<void> {
   hint.textContent = HINT_TEXT;
+  renderHelp();
   todos = await loadTodos();
   render();
   input.focus();
 
   // Rust 側がウィンドウを表示したとき
-  await listen("quicktodo://shown", () => focusInput());
+  await listen("quicktodo://shown", () => {
+    setHelpOpen(false);
+    focusInput();
+  });
   await win.onFocusChanged(({ payload: focused }) => {
     if (!focused) return;
     const edit = editing ? editInput() : null;
