@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>quicktodo</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main id="app">
+      <input
+        id="input"
+        type="text"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="今やること・考えていること"
+      />
+      <ul id="list" aria-label="todos"></ul>
+      <footer id="hint"></footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
